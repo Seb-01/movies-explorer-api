@@ -6,12 +6,12 @@ const bodyParser = require('body-parser');
 // обработчик ошибок celebrate
 const { errors } = require('celebrate');
 
-// const NotFoundError = require('./errors/not-found');
+const NotFoundError = require('./errors/not-found');
 const { loginUser, createUser } = require('./controllers/users');
 const { validateUserCreate, validateUserLogin } = require('./middlewares/celebrate');
-// const auth = require('./middlewares/auth');
+const auth = require('./middlewares/auth');
 
-// const { requestLogger, errorLogger } = require('./middlewares/logger');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 // const cors = require('./middlewares/cors');
 
 const app = express();
@@ -23,7 +23,7 @@ mongoose.connect('mongodb://localhost:27017/bitfilmsdb');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cors);
-// app.use(requestLogger); // подключаем логгер запросов
+app.use(requestLogger); // подключаем логгер запросов
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -36,18 +36,18 @@ app.post('/signin', validateUserLogin, loginUser);
 app.post('/signup', validateUserCreate, createUser);
 
 // обеспечиваем авторизацию при запросах ниже
-// app.use(auth);
+app.use(auth);
 
 // роутинг организуем
 app.use('/users', require('./routes/users'));
 app.use('/movies', require('./routes/movies'));
 
-// app.use('*', (req, res, next) => {
-//   next(new NotFoundError('Страница не найдена!'));
-// });
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Страница не найдена!'));
+});
 
 // после обработчиков роутов и до обработчиков ошибок!!!
-// app.use(errorLogger); // подключаем логгер ошибок
+app.use(errorLogger); // подключаем логгер ошибок
 
 // обработчики ошибок
 app.use(errors()); // обработчик ошибок celebrate

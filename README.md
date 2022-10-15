@@ -6,5 +6,6 @@
 Ссылка на подключение к BM: seb@178.154.204.53
 
 178.154.204.53
-Frontend 
+Frontend https://seb.diploma.nomoredomains.icu
+
 Backend https://api.seb.diploma.nomoredomains.icu

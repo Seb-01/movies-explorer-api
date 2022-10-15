@@ -1,6 +1,3 @@
-// для теста!!
-// const mongoose = require('mongoose');
-
 const bcrypt = require('bcryptjs'); // импортируем bcrypt
 const jwt = require('jsonwebtoken'); // импортируем модуль jsonwebtoken
 const User = require('../models/user');
@@ -70,16 +67,11 @@ module.exports.updateUser = (req, res, next) => {
 
 // возвращает информацию по текущему пользователю (email и имя)
 module.exports.getCurrentUser = (req, res, next) => {
-  // для теста!
-  // console.log('getCurrentUser');
-  // const _id = mongoose.Types.ObjectId('6347b0035e5e6f54b34a2036');
-  // console.log(_id);
-  // ------------------------
   // req.user._id - подставляется автоматически в auth()
-  // User.findById(req.user._id)
   // Для теста:
-  const _id = '6347b0035e5e6f54b34a2036';
-  User.findById(_id)
+  // const _id = '6347b0035e5e6f54b34a2036';
+  // User.findById(_id)
+  User.findById(req.user._id)
     .then((user) => {
       if (user) {
         // Просто send не останавливает выполнение кода!!

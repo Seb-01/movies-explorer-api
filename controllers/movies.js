@@ -12,8 +12,8 @@ module.exports.createMovie = (req, res, next) => {
     trailerLink, thumbnail, movieId, nameRU, nameEN,
   } = req.body;
 
-  // const owner = req.user._id;
-  const ownerID = '6347b0035e5e6f54b34a2036';
+  const ownerId = req.user._id;
+  // это для теста const ownerID = '6347b0035e5e6f54b34a2036';
   Movie.create({
     country,
     director,
@@ -23,7 +23,7 @@ module.exports.createMovie = (req, res, next) => {
     image,
     trailerLink,
     thumbnail,
-    owner: ownerID,
+    owner: ownerId,
     movieId,
     nameRU,
     nameEN,
@@ -69,7 +69,7 @@ module.exports.getMovies = (req, res, next) => {
 
 // удаляет сохранённый фильм по id
 module.exports.deleteMovie = (req, res, next) => {
-  const ownerID = '6347b0035e5e6f54b34a2036';
+  // const ownerID = '6347b0035e5e6f54b34a2036';
   // найдем фильм для начала
   // console.log(req.params.movieId);
   Movie.findById(req.params.movieId)
@@ -77,8 +77,8 @@ module.exports.deleteMovie = (req, res, next) => {
       if (movie) {
         // если этот фильм создан текущим пользователем
         // valueOf() потому что movie.owner._id = new ObjectId("631efb509e70fef49edc57aa")
-        if (movie.owner._id.valueOf() === ownerID) {
-        // if (movie.owner._id.valueOf() === req.user._id) {
+        // это для теста: if (movie.owner._id.valueOf() === ownerID) {
+        if (movie.owner._id.valueOf() === req.user._id) {
           Movie.findByIdAndRemove(req.params.movieId)
             .then((delMovie) => {
               if (delMovie) {
@@ -91,7 +91,7 @@ module.exports.deleteMovie = (req, res, next) => {
               if (err.name === 'CastError') {
                 next(new BadRequestError('Произошла ошибка при удалении фильма: некорректные данные!'));
               }
-              next(new InternalServerError('Произошла внутрення ошибка сервера!'));
+              next(new InternalServerError('Произошла внутренняя ошибка сервера!'));
             });
         } else {
           next(new PermissionError('Удалять можно только свои фильмы!'));
@@ -105,6 +105,6 @@ module.exports.deleteMovie = (req, res, next) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Произошла ошибка при удалении фильма: некорректные данные!'));
       }
-      next(new InternalServerError('Произошла внутрення ошибка сервера!'));
+      next(new InternalServerError('Произошла внутренняя ошибка сервера!'));
     });
 };

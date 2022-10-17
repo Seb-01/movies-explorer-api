@@ -1,29 +1,29 @@
 require('dotenv').config();
-
 const express = require('express');
 const mongoose = require('mongoose');
+const helmet = require('helmet');
 const bodyParser = require('body-parser');
-// обработчик ошибок celebrate
-const { errors } = require('celebrate');
-
-const NotFoundError = require('./errors/not-found');
-const { loginUser, createUser } = require('./controllers/users');
-const { validateUserCreate, validateUserLogin } = require('./middlewares/celebrate');
-const auth = require('./middlewares/auth');
-
+const { errors } = require('celebrate'); // обработчик ошибок celebrate
+const router = require('./routes/index');
+const limiter = require('./middlewares/rate-limiter');
+const errorCentralHandler = require('./middlewares/errorCentralHandler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
+const notFound = require('./middlewares/not-found');
 // const cors = require('./middlewares/cors');
+
+const { DB_HOST, DB_PORT, DB_NAME } = process.env;
 
 const app = express();
 
-// Подключаем БД:
-// подключаемся к серверу mongo
-mongoose.connect('mongodb://localhost:27017/bitfilmsdb');
+// БД: подключаемся к серверу mongo
+mongoose.connect(`mongodb://${DB_HOST}:${DB_PORT}/${DB_NAME}`);
 
+app.use(helmet());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 // app.use(cors);
 app.use(requestLogger); // подключаем логгер запросов
+app.use(limiter);
 
 app.get('/crash-test', () => {
   setTimeout(() => {
@@ -31,42 +31,16 @@ app.get('/crash-test', () => {
   }, 0);
 });
 
-// роут для логина и регистрации
-app.post('/signin', validateUserLogin, loginUser);
-app.post('/signup', validateUserCreate, createUser);
-
-// обеспечиваем авторизацию при запросах ниже
-app.use(auth);
-
 // роутинг организуем
-app.use('/users', require('./routes/users'));
-app.use('/movies', require('./routes/movies'));
+app.use(router);
+// если страница не найдена - возвращаем ошибку!
+app.use(notFound);
 
-app.use('*', (req, res, next) => {
-  next(new NotFoundError('Страница не найдена!'));
-});
-
-// после обработчиков роутов и до обработчиков ошибок!!!
+// после обработчиков роутов и до обработчиков ошибок!
 app.use(errorLogger); // подключаем логгер ошибок
-
 // обработчики ошибок
 app.use(errors()); // обработчик ошибок celebrate
-
 // здесь централизовано обрабатываем все ошибки
-app.use((err, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500
-  const { statusCode = 500, message } = err;
-
-  res
-    .status(statusCode)
-    .send({
-      // проверяем статус и выставляем сообщение в зависимости от него
-      message: statusCode === 500
-        ? 'На сервере произошла ошибка'
-        : message,
-    });
-
-  next();
-});
+app.use(errorCentralHandler);
 
 module.exports = app;

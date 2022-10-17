@@ -1,30 +1,33 @@
 // A library of string validators and sanitizers.
 const validator = require('validator');
-const { ObjectId } = require('mongoose').Types;
+
+// const { ObjectId } = require('mongoose').Types;
 
 // Чтобы отправить клиенту ошибку, в celebrate есть специальный мидлвэр — errors
 const {
   celebrate, Joi, Segments,
 } = require('celebrate');
 
+const { URL_VALIDATION_BAD_REQUESTS } = require('../utils/errors-name');
+
 // проверка url
 const urlValidator = (value) => {
   const result = validator.isURL(value);
   if (result) return value;
-  throw new Error('URL validation error');
+  throw new Error(URL_VALIDATION_BAD_REQUESTS);
 };
 
 // проверка ObjectId
-const idValidator = (value) => {
-  if (ObjectId.isValid(value)) return value;
-  throw new Error('Owner ObjectId validation error');
-};
+// const idValidator = (value) => {
+//   if (ObjectId.isValid(value)) return value;
+//   throw new Error('Owner ObjectId validation error');
+// };
 
 // создаёт пользователя с переданными в теле email, password и name
 const validateUserCreate = celebrate({
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
     name: Joi.string().required().min(2).max(30),
   }),
 });
@@ -41,7 +44,7 @@ const validateUserUpdate = celebrate({
 const validateUserLogin = celebrate({
   [Segments.BODY]: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 });
 
@@ -51,12 +54,11 @@ const validateMovieCreate = celebrate({
     country: Joi.string().required(),
     director: Joi.string().required(),
     duration: Joi.number().required(),
-    year: Joi.string().required().min(4),
+    year: Joi.string().required(),
     description: Joi.string().required(),
-    image: Joi.string().custom(urlValidator),
-    trailerLink: Joi.string().custom(urlValidator),
-    thumbnail: Joi.string().custom(urlValidator),
-    owner: Joi.any().required().custom(idValidator),
+    image: Joi.string().required().custom(urlValidator),
+    trailerLink: Joi.string().required().custom(urlValidator),
+    thumbnail: Joi.string().required().custom(urlValidator),
     movieId: Joi.number().required(),
     nameRU: Joi.string().required(),
     nameEN: Joi.string().required(),
@@ -66,7 +68,7 @@ const validateMovieCreate = celebrate({
 // проверка роутера при удалении сохранённого фильма по id
 const validateMovieDeleteById = celebrate({
   [Segments.PARAMS]: Joi.object().keys({
-    movieId: Joi.string().alphanum().length(24),
+    movieId: Joi.string().required().length(24),
   }),
 });
 

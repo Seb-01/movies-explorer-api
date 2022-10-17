@@ -1,16 +1,25 @@
 const mongoose = require('mongoose');
+const validate = require('mongoose-validator');
+
+// option.validator {string} or {function} - required
+// Name of the validator or a custom function you wish to use, this can be any
+// one of the built-in validator.js validators, or a custom validator.
+const urlValidator = [
+  validate({
+    validator: (value) => validate.isURL(value, { protocols: ['http', 'https', 'ftp'], require_tld: true, require_protocol: true }),
+    message: 'Must be a Valid URL',
+  }),
+];
 
 const movieShema = new mongoose.Schema(
   {
     country: { // country — страна создания фильма. Обязательное поле-строка.
       type: String, // строка
       required: true,
-      default: 'New Country',
     },
     director: { // director — режиссёр фильма. Обязательное поле-строка
       type: String, // строка
       required: true,
-      default: 'New Director',
     },
     duration: { // duration — длительность фильма. Обязательное поле-число
       type: Number,
@@ -27,14 +36,17 @@ const movieShema = new mongoose.Schema(
     image: { // image — ссылка на постер к фильму. Обязательное поле-строка. URL-адрес.
       type: String,
       required: true,
+      validate: urlValidator,
     },
     trailerLink: { // trailerLink — ссылка на трейлер фильма. Обязательное поле-строка. URL-адрес.
       type: String,
       required: true,
+      validate: urlValidator,
     },
     thumbnail: { // thumbnail — миниат изображение постера к фильму. Обяз поле-строка. URL-адрес.
       type: String,
       required: true,
+      validate: urlValidator,
     },
     owner: { //  _id пользователя, который сохранил фильм. Обязательное поле.
       type: mongoose.Schema.Types.ObjectId,

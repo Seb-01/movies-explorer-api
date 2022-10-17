@@ -1,5 +1,6 @@
 require('dotenv').config();
 const app = require('./app');
+
 // Слушаем 3001 порт
 const { PORT = 3001 } = process.env;
 

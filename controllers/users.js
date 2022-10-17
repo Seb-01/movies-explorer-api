@@ -6,47 +6,61 @@ const InternalServerError = require('../errors/internal-server');
 const DuplicateError = require('../errors/duplicate-uniq-dbfield');
 const UnAuthoRizedError = require('../errors/unauthorized');
 const NotFoundError = require('../errors/not-found');
+const {
+  USER_CREATE_ERROR_NOT_UNIQUE,
+  USER_CREATE_ERROR_BAD_REQUESTS,
+  USER_UPDATE_ERROR_NOT_UNIQUE,
+  USER_UPDATE_ERROR_USER_NOT_FOUND,
+  USER_UPDATE_ERROR_BAD_REQUESTS,
+  USER_GET_INFO_ERROR_USER_NOT_FOUND,
+  USER_GET_INFO_ERROR_USER_BAD_REQUESTS,
+  USER_GET_INFO_ERROR_INTERNAL_SERVER_ERROR,
+  AUTH_ERROR_WRONG_CREDENTIAL,
+  AUTH_ERROR_BAD_REQUESTS,
+  AUTH_ERROR_INTERNAL_SERVER_ERROR,
+} = require('../utils/errors-name');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 // создает пользователя с переданными в теле email, password и name
 module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
-  // сначала ищем юзера в базе, если он уже есть - выкидываем ошибку, иначе создаем!
-  User.findOne({ email })
-    .then((newUser) => {
-      if (newUser) {
-        return next(new DuplicateError('Ошибка при создании пользователя: пользователь с таким email уже существует!'));
+  // хешируем пароль
+  const hash = bcrypt.hash(password, 10);
+  // создаем пользователя
+  User.create({ name, email, password: hash, })
+    .then((user) => res.status(201).send({
+      name: user.name,
+      email: user.email,
+      id: user._id,
+    }))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(USER_CREATE_ERROR_BAD_REQUESTS));
+      } else if (err.code === 11000) {
+        next(new DuplicateError(USER_CREATE_ERROR_NOT_UNIQUE));
+      } else {
+        // отправляем ошибку в централизованный обработчик
+        next(err);
       }
-      // работаем дальше: хешируем пароль
-      return bcrypt.hash(password, 10);
-    })
-    .then((hash) => User.create({ name, email, password: hash })
-      .then((user) => res.status(201).send({
-        name: user.name,
-        email: user.email,
-        id: user._id,
-      }))
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          next(new BadRequestError('Произошла ошибка при создании пользователя: некорректные данные!'));
-        } else if (err.code === 11000) {
-          next(new DuplicateError('Произошла ошибка при создании пользователя: пользователь с таким email уже существует!'));
-        } else {
-          // отправляем ошибку в централизованный обработчик
-          next(err);
-        }
-      }));
+    });
 };
 
 // обновляем информацию о пользователе (email и имя)
 module.exports.updateUser = (req, res, next) => {
   const { name, email } = req.body;
-  User.findByIdAndUpdate(req.user._id, { name, email }, {
-    // Передадим объект опций:
-    new: true, // обработчик then получит на вход обновлённую запись
-    runValidators: true, // данные будут валидированы перед изменением
-  })
+  // защита от дубля email при редактировании профиля
+  User.findOne({ email })
+    .then((newUser) => {
+      if (newUser) {
+        return next(new DuplicateError(USER_UPDATE_ERROR_NOT_UNIQUE));
+      }
+      return User.findByIdAndUpdate(req.user._id, { name, email }, {
+        // Передадим объект опций:
+        new: true, // обработчик then получит на вход обновлённую запись
+        runValidators: true, // данные будут валидированы перед изменением
+      });
+    })
     .then((user) => {
       if (user) {
         return res.send({
@@ -55,13 +69,17 @@ module.exports.updateUser = (req, res, next) => {
           id: user._id,
         });
       }
-      return next(new NotFoundError('Произошла ошибка при обновлении пользователя: пользователь не найден!'));
+      return next(new NotFoundError(USER_UPDATE_ERROR_USER_NOT_FOUND));
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        next(new BadRequestError('Произошла ошибка при обновлении пользователя: некорректные данные!'));
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(USER_UPDATE_ERROR_BAD_REQUESTS));
+      } else if (err.code === 11000) {
+        next(new DuplicateError(USER_UPDATE_ERROR_NOT_UNIQUE));
+      } else {
+        // отправляем ошибку в централизованный обработчик
+        next(err);
       }
-      next(new InternalServerError('Произошла внутренняя ошибка сервера!'));
     });
 };
 
@@ -70,7 +88,6 @@ module.exports.getCurrentUser = (req, res, next) => {
   // req.user._id - подставляется автоматически в auth()
   // Для теста:
   // const _id = '6347b0035e5e6f54b34a2036';
-  // User.findById(_id)
   User.findById(req.user._id)
     .then((user) => {
       if (user) {
@@ -81,13 +98,13 @@ module.exports.getCurrentUser = (req, res, next) => {
           id: user._id,
         });
       }
-      return next(new NotFoundError('Произошла ошибка при запросе инфо о пользователе: пользователь не найден!'));
+      return next(new NotFoundError(USER_GET_INFO_ERROR_USER_NOT_FOUND));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Произошла ошибка при запросе инфо о пользователе: некорректные данные!'));
+        return next(new BadRequestError(USER_GET_INFO_ERROR_USER_BAD_REQUESTS));
       }
-      next(new InternalServerError('Произошла внутренняя ошибка сервера!'));
+      return next(new InternalServerError(USER_GET_INFO_ERROR_INTERNAL_SERVER_ERROR));
     });
 };
 
@@ -99,14 +116,14 @@ module.exports.loginUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         // пользователь с такой почтой не найден
-        return next(new UnAuthoRizedError('Ошибка авторизации: неправильные почта или пароль!'));
+        return next(new UnAuthoRizedError(AUTH_ERROR_WRONG_CREDENTIAL));
       }
       // пользователь найден
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             // хеши не совпали — отклоняем промис
-            next(new UnAuthoRizedError('Ошибка авторизации: неправильные почта или пароль!'));
+            next(new UnAuthoRizedError(AUTH_ERROR_WRONG_CREDENTIAL));
           }
           // аутентификация успешна - создаем JWT сроком на неделю
           console.log(`user._id ${user._id}`);
@@ -121,8 +138,8 @@ module.exports.loginUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Произошла ошибка при авторизации: некорректные данные!'));
+        return next(new BadRequestError(AUTH_ERROR_BAD_REQUESTS));
       }
-      next(new InternalServerError('Произошла внутрення ошибка сервера!'));
+      return next(new InternalServerError(AUTH_ERROR_INTERNAL_SERVER_ERROR));
     });
 };

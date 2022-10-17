@@ -6,8 +6,8 @@ const validate = require('mongoose-validator');
 // one of the built-in validator.js validators, or a custom validator.
 const urlValidator = [
   validate({
-    validator: (value) => validate.isURL(value, { protocols: ['http', 'https', 'ftp'], require_tld: true, require_protocol: true }),
-    message: 'Must be a Valid URL',
+    validator: 'isURL',
+    message: 'Name should be a correct URL',
   }),
 ];
 

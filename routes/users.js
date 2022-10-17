@@ -5,8 +5,8 @@ const { validateUserUpdate } = require('../middlewares/celebrate');
 const { getCurrentUser, updateUser } = require('../controllers/users');
 
 // возвращает информацию о пользователе (email и имя)
-router.get('/me', getCurrentUser);
+router.get('users/me', getCurrentUser);
 // обновляет информацию о пользователе (email и имя)
-router.patch('/me', validateUserUpdate, updateUser);
+router.patch('users/me', validateUserUpdate, updateUser);
 
 module.exports = router;

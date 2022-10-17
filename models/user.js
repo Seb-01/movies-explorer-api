@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 
+const {
+  SCHEMA_ERROR_WRONG_EMAIL,
+} = require('../utils/errors-name');
+
 const userSchema = new mongoose.Schema(
   {
     name: { // у пользователя есть имя — опишем требования к имени в схеме:
@@ -15,7 +19,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       validate: {
         validator: (email) => validator.isEmail(email),
-        message: 'userSchema: Неправильный формат email!',
+        message: SCHEMA_ERROR_WRONG_EMAIL,
       },
     },
     password: {

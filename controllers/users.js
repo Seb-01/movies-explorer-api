@@ -26,24 +26,29 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 module.exports.createUser = (req, res, next) => {
   const { name, email, password } = req.body;
   // хешируем пароль
-  const hash = bcrypt.hash(password, 10);
-  // создаем пользователя
-  User.create({ name, email, password: hash, })
-    .then((user) => res.status(201).send({
-      name: user.name,
-      email: user.email,
-      id: user._id,
-    }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(USER_CREATE_ERROR_BAD_REQUESTS));
-      } else if (err.code === 11000) {
-        next(new DuplicateError(USER_CREATE_ERROR_NOT_UNIQUE));
-      } else {
-        // отправляем ошибку в централизованный обработчик
-        next(err);
-      }
-    });
+  bcrypt.hash(password, 10)
+    .then((hash) => {
+      if (!hash) return next(new BadRequestError(USER_CREATE_ERROR_BAD_REQUESTS));
+      // создаем пользователя
+      return User.create({ name, email, password: hash })
+        .then((user) => res.status(201).send({
+          name: user.name,
+          email: user.email,
+          id: user._id,
+        }))
+        .catch((err) => {
+          if (err.name === 'ValidationError') {
+            // console.log(JSON.stringify(err));
+            next(new BadRequestError(USER_CREATE_ERROR_BAD_REQUESTS));
+          } else if (err.code === 11000) {
+            next(new DuplicateError(USER_CREATE_ERROR_NOT_UNIQUE));
+          } else {
+            // отправляем ошибку в централизованный обработчик
+            next(err);
+          }
+        });
+    })
+    .catch(() => next(new InternalServerError(AUTH_ERROR_INTERNAL_SERVER_ERROR)));
 };
 
 // обновляем информацию о пользователе (email и имя)

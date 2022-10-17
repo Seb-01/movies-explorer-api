@@ -18,4 +18,5 @@ module.exports = {
   MOVIE_DELETE_ERROR_INTERNAL_SERVER_ERROR: 'Создание фильма. Произошла внутренняя ошибка сервера!',
   URL_VALIDATION_BAD_REQUESTS: 'Ошибка валидации: некорректный url!',
   RATE_LIMIT_ERROR: 'Превышено количество запросов с вашего IP!',
+  SCHEMA_ERROR_WRONG_EMAIL: 'Неправильный формат email!',
 };

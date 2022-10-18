@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const validate = require('mongoose-validator');
+const { NAME_SHOULD_BE_CORRECT_URL } = require('../utils/errors-name');
 
 // option.validator {string} or {function} - required
 // Name of the validator or a custom function you wish to use, this can be any
@@ -7,7 +8,7 @@ const validate = require('mongoose-validator');
 const urlValidator = [
   validate({
     validator: 'isURL',
-    message: 'Name should be a correct URL',
+    message: NAME_SHOULD_BE_CORRECT_URL,
   }),
 ];
 

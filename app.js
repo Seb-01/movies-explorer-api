@@ -1,4 +1,4 @@
-require('dotenv').config();
+// require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
@@ -8,10 +8,10 @@ const router = require('./routes/index');
 const limiter = require('./middlewares/rate-limiter');
 const errorCentralHandler = require('./middlewares/errorCentralHandler');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
-const notFound = require('./middlewares/not-found');
+
 // const cors = require('./middlewares/cors');
 
-const { DB_HOST, DB_PORT, DB_NAME } = process.env;
+const { DB_HOST, DB_PORT, DB_NAME } = require('./utils/env-config');
 
 const app = express();
 
@@ -25,16 +25,14 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger); // подключаем логгер запросов
 app.use(limiter);
 
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
+// app.get('/crash-test', () => {
+//   setTimeout(() => {
+//     throw new Error('Сервер сейчас упадёт');
+//   }, 0);
+// });
 
 // роутинг организуем
 app.use(router);
-// если страница не найдена - возвращаем ошибку!
-app.use(notFound);
 
 // после обработчиков роутов и до обработчиков ошибок!
 app.use(errorLogger); // подключаем логгер ошибок

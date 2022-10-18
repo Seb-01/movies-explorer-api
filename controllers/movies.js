@@ -35,9 +35,10 @@ module.exports.createMovie = (req, res, next) => {
     });
 };
 
-// возвращает все сохранённые текущим  пользователем фильмы
+// возвращает все сохранённые текущим пользователем фильмы
 module.exports.getMovies = (req, res, next) => {
-  Movie.find({})
+  const owner = req.user._id;
+  Movie.find({ owner })
     .populate(['owner'])
     .then((movies) => res.send(movies))
     .catch(() => next(new InternalServerError(MOVIE_CREATE_ERROR_INTERNAL_SERVER_ERROR)));

@@ -20,7 +20,8 @@ const {
   AUTH_ERROR_INTERNAL_SERVER_ERROR,
 } = require('../utils/errors-name');
 
-const { NODE_ENV, JWT_SECRET } = process.env;
+// const { NODE_ENV, JWT_SECRET } = process.env;
+const { JWT_SECRET } = require('../utils/env-config');
 
 // создает пользователя с переданными в теле email, password и name
 module.exports.createUser = (req, res, next) => {
@@ -134,7 +135,8 @@ module.exports.loginUser = (req, res, next) => {
           console.log(`user._id ${user._id}`);
           const token = jwt.sign(
             { _id: user._id },
-            NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+            // NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+            JWT_SECRET,
             { expiresIn: '7d' }, // контроллер должен создавать JWT сроком на неделю
           );
           // вернём токен

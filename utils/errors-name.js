@@ -7,6 +7,7 @@ module.exports = {
   USER_GET_INFO_ERROR_USER_NOT_FOUND: 'Произошла ошибка при запросе инфо о пользователе: пользователь не найден!',
   USER_GET_INFO_ERROR_USER_BAD_REQUESTS: 'Произошла ошибка при запросе инфо о пользователе: некорректные данные!',
   USER_GET_INFO_ERROR_INTERNAL_SERVER_ERROR: 'Произошла ошибка при запросе инфо о пользователе: внутренняя ошибка сервера!',
+  AUTH_ERROR_COMMON: 'Необходима авторизация!',
   AUTH_ERROR_WRONG_CREDENTIAL: 'Ошибка авторизации: неправильные почта или пароль!',
   AUTH_ERROR_BAD_REQUESTS: 'Произошла ошибка при авторизации: некорректные данные!',
   AUTH_ERROR_INTERNAL_SERVER_ERROR: 'Ошибка авторизации: внутренняя ошибка сервера!',
@@ -19,4 +20,7 @@ module.exports = {
   URL_VALIDATION_BAD_REQUESTS: 'Ошибка валидации: некорректный url!',
   RATE_LIMIT_ERROR: 'Превышено количество запросов с вашего IP!',
   SCHEMA_ERROR_WRONG_EMAIL: 'Неправильный формат email!',
+  INTERNAL_SERVER_ERROR: 'Произошла внутренняя ошибка сервера!',
+  PAGE_NOT_FOUND: 'Страница не найдена!',
+  NAME_SHOULD_BE_CORRECT_URL: 'Не корректный URL!',
 };

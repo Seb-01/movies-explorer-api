@@ -1,14 +1,12 @@
 // A library of string validators and sanitizers.
-const validator = require('validator');
+const validator = require("validator");
 
 // const { ObjectId } = require('mongoose').Types;
 
 // Чтобы отправить клиенту ошибку, в celebrate есть специальный мидлвэр — errors
-const {
-  celebrate, Joi, Segments,
-} = require('celebrate');
+const { celebrate, Joi, Segments } = require("celebrate");
 
-const { URL_VALIDATION_BAD_REQUESTS } = require('../utils/errors-name');
+const { URL_VALIDATION_BAD_REQUESTS } = require("../utils/errors-name");
 
 // проверка url
 const urlValidator = (value) => {

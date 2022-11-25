@@ -1,9 +1,9 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
+const mongoose = require("mongoose");
+const validator = require("validator");
 
 const {
   SCHEMA_ERROR_WRONG_EMAIL,
-} = require('../utils/errors-name');
+} = require("../utils/errors-name");
 
 const userSchema = new mongoose.Schema(
   {
@@ -32,4 +32,4 @@ const userSchema = new mongoose.Schema(
   { versionKey: false }, // You should be aware of the outcome after set to false
 );
 
-module.exports = mongoose.model('user', userSchema);
+module.exports = mongoose.model("user", userSchema);

@@ -18,7 +18,6 @@ const {
 module.exports.createMovie = (req, res, next) => {
   // const ownerId = req.user._id;
   // это для теста const ownerID = '6347b0035e5e6f54b34a2036';
-  alert("Пришли в createMovie");
   console.log(JSON.stringify(req.body));
   Movie.create({ ...req.body, owner: req.user._id })
     .then((movie) => movie.populate(["owner"]))

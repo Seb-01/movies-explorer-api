@@ -18,6 +18,7 @@ const {
   AUTH_ERROR_WRONG_CREDENTIAL,
   AUTH_ERROR_BAD_REQUESTS,
   AUTH_ERROR_INTERNAL_SERVER_ERROR,
+  USER_AUTH_BAD_EMAIL,
 } = require("../utils/errors-name");
 
 // const { NODE_ENV, JWT_SECRET } = process.env;
@@ -54,9 +55,7 @@ module.exports.createUser = (req, res, next) => {
           }
         });
     })
-    .catch(() =>
-      next(new InternalServerError(AUTH_ERROR_INTERNAL_SERVER_ERROR))
-    );
+    .catch((err) => next(err));
 };
 
 // обновляем информацию о пользователе (email и имя)
@@ -121,9 +120,7 @@ module.exports.getCurrentUser = (req, res, next) => {
       if (err.name === "CastError") {
         return next(new BadRequestError(USER_GET_INFO_ERROR_USER_BAD_REQUESTS));
       }
-      return next(
-        new InternalServerError(USER_GET_INFO_ERROR_INTERNAL_SERVER_ERROR)
-      );
+      return next(err);
     });
 };
 
@@ -136,30 +133,33 @@ module.exports.loginUser = (req, res, next) => {
     .then((user) => {
       if (!user) {
         // пользователь с такой почтой не найден
-        return next(new UnAuthoRizedError(AUTH_ERROR_WRONG_CREDENTIAL));
+        return next(new UnAuthoRizedError(USER_AUTH_BAD_EMAIL));
       }
       // пользователь найден
-      return bcrypt.compare(password, user.password).then((matched) => {
-        if (!matched) {
-          // хеши не совпали — отклоняем промис
-          next(new UnAuthoRizedError(AUTH_ERROR_WRONG_CREDENTIAL));
+      return bcrypt.compare(password, user.password).then((result) => {
+        if (result) {
+          // аутентификация успешна - создаем JWT сроком на неделю
+          // console.log(password);
+          // console.log(user.password);
+          // console.log(`user._id ${user._id}`);
+          // console.log(`JWT_SECRET ${JWT_SECRET}`);
+          const token = jwt.sign(
+            { _id: user._id },
+            JWT_SECRET,
+            { expiresIn: "7d" } // контроллер должен создавать JWT сроком на неделю
+          );
+          // вернём токен
+          // console.log(`token ${token}`);
+          return res.status(200).json({ token });
+        } else {
+          return next(new UnAuthoRizedError(AUTH_ERROR_WRONG_CREDENTIAL));
         }
-        // аутентификация успешна - создаем JWT сроком на неделю
-        console.log(`user._id ${user._id}`);
-        const token = jwt.sign(
-          { _id: user._id },
-          // NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
-          JWT_SECRET,
-          { expiresIn: "7d" } // контроллер должен создавать JWT сроком на неделю
-        );
-        // вернём токен
-        return res.send({ token });
       });
     })
     .catch((err) => {
       if (err.name === "CastError") {
         return next(new BadRequestError(AUTH_ERROR_BAD_REQUESTS));
       }
-      return next(new InternalServerError(AUTH_ERROR_INTERNAL_SERVER_ERROR));
+      return next(err);
     });
 };

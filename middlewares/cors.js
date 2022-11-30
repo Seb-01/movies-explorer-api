@@ -1,13 +1,9 @@
 // Массив доменов, с которых разрешены кросс-доменные запросы
 const allowedCors = [
-  "https://seb2.students.nomoredomains.icu",
-  "http://seb2.students.nomoredomains.icu",
-  "https://api.seb.students.nomoredomains.icu",
-  "http://api.seb.students.nomoredomains.icu",
-  "https://seb.diploma.nomoredomains.icu",
-  "https://api.seb.diploma.nomoredomains.icu",
-  "http://seb.diploma.nomoredomains.icu",
-  "http://api.seb.diploma.nomoredomains.icu",
+  "https://seb.diploma.nomoredomains.club",
+  "https://api.seb.diploma.nomoredomains.club",
+  "http://seb.diploma.nomoredomains.club",
+  "http://api.seb.diploma.nomoredomains.club",
   "localhost:3000",
   "http://localhost:3000",
   "https://localhost:3000",

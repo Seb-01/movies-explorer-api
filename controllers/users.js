@@ -61,22 +61,15 @@ module.exports.createUser = (req, res, next) => {
 // обновляем информацию о пользователе (email и имя)
 module.exports.updateUser = (req, res, next) => {
   const { name, email } = req.body;
-  // защита от дубля email при редактировании профиля
-  User.findOne({ email })
-    .then((newUser) => {
-      if (newUser) {
-        return next(new DuplicateError(USER_UPDATE_ERROR_NOT_UNIQUE));
-      }
-      return User.findByIdAndUpdate(
-        req.user._id,
-        { name, email },
-        {
-          // Передадим объект опций:
-          new: true, // обработчик then получит на вход обновлённую запись
-          runValidators: true, // данные будут валидированы перед изменением
-        }
-      );
-    })
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, email },
+    {
+      // Передадим объект опций:
+      new: true, // обработчик then получит на вход обновлённую запись
+      runValidators: true, // данные будут валидированы перед изменением
+    }
+  )
     .then((user) => {
       if (user) {
         return res.send({
